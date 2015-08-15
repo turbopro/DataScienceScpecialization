@@ -1,0 +1,117 @@
+Pitch Perfect
+========================================================
+author: Khalil Brahim Benyous
+date: 15 July 2015
+
+The shiny application
+========================================================
+
+It's a simple shiny application that plot a scatterplot for 2 variables for one the three datsets :
+
+- Rock
+- Pressure
+- Cars
+
+Ui.R
+========================================================
+
+```{r,eval=FALSE}
+library(shiny)
+
+# Rely on three dataset in the datasets
+# package (which generally comes preloaded).
+library(datasets)
+
+# Define the overall UI
+shinyUI(
+  
+  # Use a fluid Bootstrap layout
+  fluidPage(    
+    
+    # Give the page a title
+    titlePanel("Summary and Histogram"),
+    
+    # Generate a row with a sidebar
+    sidebarLayout(  
+      sidebarPanel(
+       # Define the sidebar with two input
+        selectInput("dataset", "Choose a dataset:", 
+                    choices=c("rock","pressure","cars")),
+        submitButton("Ok")
+
+      ),
+      
+      # Create a spot for the summary and the plot
+      mainPanel(
+        verbatimTextOutput("summary"),
+        plotOutput("scatterplot")  
+      )
+      
+    )
+  )
+)
+
+
+```
+
+server.R
+========================================================
+
+```{r,eval=FALSE}
+library(shiny)
+
+
+# Rely on the 3 dataset in the datasets
+# package (which generally comes preloaded).
+library(datasets)
+
+# Define a server for the Shiny app
+shinyServer(function(input, output) {
+  
+  # By declaring datasetInput as a reactive expression we ensure 
+  # that:
+  #
+  #  1) It is only called when the inputs it depends on changes
+  #  2) The computation and result are shared by all the callers 
+  #    (it only executes a single time)
+  #
+    datasetInput <- reactive({
+      switch(input$dataset,
+             "rock" = rock,
+             "pressure" = pressure,
+             "cars" = cars)
+    })
+  
+  # output the summary of the data
+  output$summary <- renderPrint({
+    dataset <- datasetInput()
+    summary(dataset[,1:2])
+  })
+    
+  output$scatterplot <- renderPlot({
+    # Render a scatterplot
+    dataset <- datasetInput()
+    plot(dataset[,1],dataset[,2], 
+            main = paste(names(dataset)[1],"Vs",names(dataset)[2]),
+            ylab= names(dataset)[2],
+            xlab= names(dataset)[1])
+  })
+})
+
+```
+
+
+Example : scatteplot for "rock" dataset
+========================================================
+
+```{r,echo=FALSE}
+library(datasets)
+data(rock)
+
+
+plot(rock[,1],rock[,2], main = paste(names(rock)[1],"Vs",names(rock)[2]), ylab= names(rock)[2], xlab= names(rock)[1])
+
+
+```
+
+There is a postive correlation between the area when we find a rock and his perimeter.
